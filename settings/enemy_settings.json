@@ -1,0 +1,17 @@
+{
+    "normal": {
+        "speed": 110,
+        "damage": 25,
+        "health": 100
+    },
+    "fast": {
+        "speed": 160,
+        "damage": 15,
+        "health": 50
+    },
+    "heavy": {
+        "speed": 70,
+        "damage": 35,
+        "health": 150
+    }
+}
