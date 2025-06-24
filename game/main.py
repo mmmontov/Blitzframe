@@ -27,8 +27,8 @@ class Game:
 
         
         # sounds
-        self.sounds_volume = 0
-        self.music_volume = 0
+        self.sounds_volume = 0.1
+        self.music_volume = 0.1
         self.sound = Sound(self)
         
 
