@@ -249,7 +249,7 @@ class Enemy(AnimatedSprite):
         info = self.get_info(self.name)
         speed, health, damage = info['speed'], info['health'], info['damage']
         
-        self.speed = random.randint(speed-10, speed+10) * speed_multiplier
+        self.base_speed = self.speed = random.randint(speed-10, speed+10) * speed_multiplier
         self.max_health = self.health = health * health_multiplier
         self.base_damage = self.damage = damage * damage_multiplier
         

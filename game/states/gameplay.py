@@ -101,7 +101,6 @@ class Gameplay:
             self.game.available_weapons[Shotgun.gun_name] = Shotgun
             self.game.available_weapons[SniperRifle.gun_name] = SniperRifle
             self.game.available_weapons[MachineGun.gun_name] = MachineGun
-            print('shot added')
             print(self.game.available_weapons)
         if keys[pygame.K_1]:
             self.game.change_gun(Pistol.gun_name)
@@ -521,7 +520,6 @@ class Shop(InGameWindow):
                             self.game.game_stats.damage_upgrade += self.game.game_stats.damage_upgrade_step
                             self.game.game_stats.update_skill_level()
                             self.game.current_gun.damage = self.game.game_stats.damage_upgrade
-                            print(self.game.game_stats.damage_upgrade)
 
                     if btn.callback == 'speed_upgrade':
                         price = self.game.game_stats.get_upgrade_price('speed')
