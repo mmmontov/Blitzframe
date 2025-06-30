@@ -225,7 +225,8 @@ class Gameplay:
         for enemy in self.game.enemy_sprites:
             if enemy.rect.colliderect(self.game.player.rect):
                 self.game.player.take_damage(enemy)
-                enemy.deal_damage()
+                if not self.game.player.damage_delay_timer:
+                    enemy.deal_damage()
         
     def check_player_alive(self):
         if self.game_stats.health <= 0:
