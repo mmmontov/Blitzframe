@@ -13,5 +13,10 @@
         "speed": 70,
         "damage": 35,
         "health": 150
+    },
+    "first_boss": {
+        "speed": 100,
+        "damage": 40,
+        "health": 7000
     }
 }

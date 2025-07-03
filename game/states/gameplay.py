@@ -158,11 +158,14 @@ class Gameplay:
         self.game.play_sound('tick')
         
         # starting wave
-        wave_settings = load_json('settings/waves.json')[str(self.game_stats.wave)]
+        wave_settings:dict = load_json('settings/waves.json')[str(self.game_stats.wave)]
+        self.boss_wave = wave_settings.get('boss', False)
+        
         enemies_dict = {
             NormalEnemy.name: NormalEnemy,
             FastEnemy.name: FastEnemy,
-            HeavyEmemy.name: HeavyEmemy
+            HeavyEmemy.name: HeavyEmemy,
+            FirstBoss.name: FirstBoss
         }
         wave_multipliers = wave_settings['enemies_multiplier']
         
@@ -172,7 +175,10 @@ class Gameplay:
             for _ in range(enemy_num):
                 
                 # Фильтруем спавнеры, оставляя только те, что далеко от игрока
-                def choice_spawner(min_distance=600):
+                def _choice_spawner(min_distance=600, boss=False):
+                    if boss:
+                        return self.game.tilemap.boss_spawner()
+                    
                     player_pos = self.game.player.rect.center
                     spawners = [
                         pos for pos in self.game.tilemap.enemy_spawner()
@@ -189,18 +195,21 @@ class Gameplay:
                     True, 
                     lambda enemy_name = enemy_name: enemies_dict[enemy_name]((
                         self.game.all_sprites, self.game.enemy_sprites), 
-                        choice_spawner(700),
+                        _choice_spawner(700, enemies_dict[enemy_name].boss),
                         self.game.enemies_frames_dict[enemy_name],
                         self.game.player,
                         self.game.collision_sprites,
                         health_multiplier=wave_multipliers['health'],
                         speed_multiplier=wave_multipliers['speed'],
-                        damage_multiplier=wave_multipliers['damage']
+                        damage_multiplier=wave_multipliers['damage'],
+                        game=self.game
                         )))
         
     
     def ending_wave(self):
         self.game_stats.wave_active = False
+        if self.boss_wave:
+            self.game_stats.money += int(500*(self.game_stats.wave/5))
         # draw wave congradulation
         surface = pygame.display.get_surface()
         font = self.game.l_font
@@ -214,6 +223,7 @@ class Gameplay:
     
                 
     def collision(self):
+        # пули игрока с врагами
         for bullet in self.game.bullet_sprites:
             sprite_collision = pygame.sprite.spritecollide(bullet, self.game.enemy_sprites, False, pygame.sprite.collide_mask)
             if sprite_collision:
@@ -221,7 +231,16 @@ class Gameplay:
                 for sprite in sprite_collision:
                     if sprite.collision_active:
                         sprite.take_damage(bullet.damage)
-        
+
+        # пули врагов с игроком
+        sprite_collision = pygame.sprite.spritecollide(self.game.player, self.game.enemies_bullet_sprites, True, pygame.sprite.collide_mask)
+        damage = 50
+        if self.game.enemies_bullet_sprites:
+            damage = list(self.game.enemies_bullet_sprites)[0].damage
+        if sprite_collision:
+            self.game.player.take_damage(damage=damage)
+                             
+        # враги с игроком
         for enemy in self.game.enemy_sprites:
             if enemy.rect.colliderect(self.game.player.rect):
                 self.game.player.take_damage(enemy)
@@ -245,7 +264,7 @@ class Gameplay:
         if hasattr(self, 'fade_text'):
             self.fade_text.update(self.game.display_surface)
 
-        if hasattr(self, 'spawn_timers') and not self.spawn_timers and self.game_stats.enemies_counter == 0 and self.game_stats.wave_active:
+        if hasattr(self, 'spawn_timers') and not self.spawn_timers and self.game_stats.enemies_counter == 0 and self.game_stats.wave_active and not self.game.enemy_sprites:
             self.ending_wave()
 
             

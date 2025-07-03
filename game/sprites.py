@@ -170,12 +170,16 @@ class Player(Sprite):
         self.player_alive = False
         self.image = self.death_frame
 
-    def take_damage(self, enemy):
+    def take_damage(self, enemy=None, damage=None):
+        '''передаётся либо enemy либо damage, damage - когда пуля прилетает, enemy - когда дамажит соприкосновением'''
         if not self.damage_delay_timer:
             if hasattr(self, 'knockback_timer') and self.knockback_timer and self.knockback_timer.active:
                 return  
             
-            self.health -= int(enemy.damage)
+            if enemy:
+                damage = enemy.damage
+            
+            self.health -= int(damage)
             self.damage_delay_timer.activate()
             
             
@@ -192,21 +196,22 @@ class Player(Sprite):
             else:
                 self.all_sprites.shake(5)
             
-            # punch
-            if self.knockback:
-                direction = pygame.Vector2(self.rect.center) - pygame.Vector2(enemy.rect.center)
-                if direction.length_squared() > 0:
-                    self.knockback_direction = direction.normalize()
-                    self.knockback_speed = 400 
-                    self.knockback_timer = Timer(100)
-                    self.knockback_timer.activate()
-                else:
-                    self.knockback_direction = pygame.Vector2()
-                    self.knockback_timer = None
-            self.knockback = False
-            def knockback_on():
-                self.knockback = True
-            self.knockback_freeze_timer = Timer(500, False, True, knockback_on)
+            if enemy:
+                # punch
+                if self.knockback:
+                    direction = pygame.Vector2(self.rect.center) - pygame.Vector2(enemy.rect.center)
+                    if direction.length_squared() > 0:
+                        self.knockback_direction = direction.normalize()
+                        self.knockback_speed = 400 
+                        self.knockback_timer = Timer(100)
+                        self.knockback_timer.activate()
+                    else:
+                        self.knockback_direction = pygame.Vector2()
+                        self.knockback_timer = None
+                self.knockback = False
+                def knockback_on():
+                    self.knockback = True
+                self.knockback_freeze_timer = Timer(500, False, True, knockback_on)
 
 
     def apply_knockback(self, dt):
@@ -240,8 +245,13 @@ class Player(Sprite):
 # =============== enemies ====================
         
 class Enemy(AnimatedSprite):
-    def __init__(self, groups, pos, frames, player: Player, collision_sprites, health_multiplier=1, speed_multiplier=1, damage_multiplier=1):
+    boss = False
+    def __init__(self, groups, pos, frames, player: Player, collision_sprites, health_multiplier=1, speed_multiplier=1, damage_multiplier=1, game=None):
         super().__init__(groups, pos, frames)
+        self.health_multiplier = health_multiplier
+        self.speed_multiplier = speed_multiplier
+        self.damage_multiplier = damage_multiplier
+        
         self.death_timer = Timer(200, func=self.kill)
         self.player = player
         self.collision_active = True
@@ -308,10 +318,12 @@ class Enemy(AnimatedSprite):
 
                     if direction == 'horizontal':
                         self.direction = pygame.Vector2(0, -1 if offset.y < 0 else 1)
+                        obstacle_size = sprite.rect.height
                     else:
                         self.direction = pygame.Vector2(-1 if offset.x < 0 else 1, 0)
+                        obstacle_size = sprite.rect.width
+                        
 
-                    obstacle_size = max(sprite.rect.width, sprite.rect.height)
                     duration = int(obstacle_size * 11)
                     self.bump_timer = Timer(duration)
                     self.bump_timer.activate()
@@ -365,23 +377,156 @@ class Enemy(AnimatedSprite):
     
 class NormalEnemy(Enemy):
     name = 'normal'
-    def __init__(self, groups, pos, frames, player, collision_sprites, health_multiplier=1,  speed_multiplier=1, damage_multiplier=1):
-        super().__init__(groups, pos, frames, player, collision_sprites, health_multiplier, speed_multiplier, damage_multiplier)  
+    def __init__(self, groups, pos, frames, player, collision_sprites, health_multiplier=1,  speed_multiplier=1, damage_multiplier=1, game=None):
+        super().__init__(groups, pos, frames, player, collision_sprites, health_multiplier, speed_multiplier, damage_multiplier, game=None)  
         
 
 class FastEnemy(Enemy):
     name = 'fast'
-    def __init__(self, groups, pos, frames, player, collision_sprites, health_multiplier=1,  speed_multiplier=1, damage_multiplier=1):
-        super().__init__(groups, pos, frames, player, collision_sprites, health_multiplier,  speed_multiplier, damage_multiplier)
+    def __init__(self, groups, pos, frames, player, collision_sprites, health_multiplier=1,  speed_multiplier=1, damage_multiplier=1, game=None):
+        super().__init__(groups, pos, frames, player, collision_sprites, health_multiplier,  speed_multiplier, damage_multiplier, game=None)
 
         
 class HeavyEmemy(Enemy):
     name = 'heavy'
-    def __init__(self, groups, pos, frames, player, collision_sprites, health_multiplier=1,  speed_multiplier=1, damage_multiplier=1):
-        super().__init__(groups, pos, frames, player, collision_sprites, health_multiplier,  speed_multiplier, damage_multiplier)   
+    def __init__(self, groups, pos, frames, player, collision_sprites, health_multiplier=1,  speed_multiplier=1, damage_multiplier=1, game=None):
+        super().__init__(groups, pos, frames, player, collision_sprites, health_multiplier,  speed_multiplier, damage_multiplier, game=None)   
 
+
+class FirstBoss(Enemy):
+    name = 'first_boss'
+    boss = True
+    def __init__(self, groups, pos, frames, player, collision_sprites, health_multiplier=1, speed_multiplier=1, damage_multiplier=1, game=None):
+        super().__init__(groups, pos, frames, player, collision_sprites, health_multiplier, speed_multiplier, damage_multiplier, game=None)
+        self.game = game
+        self.attack_timer = Timer(5000, True, True, self.attack)
+        self.bullet_surf = pygame.image.load(join('images', 'guns', 'enemy_bullet.png')).convert_alpha()
+        self.attack_timers_list = []
+
+    def attack(self):
+        attack_list = [self.star_attack, 
+                       self.laser_attack, 
+                       self.triple_shot_attack, 
+                       self.wave_attack, 
+                       self.spiral_attack]
+        
+        self.attack_timers_list = []
+        number_of_attacks = 6
+        attacks_delay = 400
+        current_attack = random.choice(attack_list)
+        
+        for i in range(1, number_of_attacks+1):
+            self.attack_timers_list.append(Timer(attacks_delay*i, False, True, current_attack))
+     
+    def spiral_attack(self):
+        self.game.play_sound('laser_shot')
+        num_bullets = 8
+        self.spiral_angle = getattr(self, "spiral_angle", 0) + 10  
+        for i in range(num_bullets):
+            angle = radians(self.spiral_angle + (360 / num_bullets) * i)
+            direction = pygame.Vector2(cos(angle), sin(angle))
+            Bullet(
+                (self.game.all_sprites, self.game.enemies_bullet_sprites),
+                self.rect.center,
+                self.bullet_surf,
+                direction,
+                self.damage,
+                lifetime=6000,
+                speed=250*self.speed_multiplier
+            )
+      
+    def wave_attack(self):
+        self.game.play_sound('laser_shot')
+        bullets_per_ring = 12
+        for i in range(bullets_per_ring):
+            angle = radians((360 / bullets_per_ring) * i)
+            direction = pygame.Vector2(cos(angle), sin(angle))
+            Bullet(
+                (self.game.all_sprites, self.game.enemies_bullet_sprites),
+                self.rect.center,
+                self.bullet_surf,
+                direction,
+                self.damage,
+                lifetime=7000,
+                speed=190*self.speed_multiplier
+                )      
+    
+    def laser_attack(self):
+        self.game.play_sound('laser_shot')
+        direction = (pygame.Vector2(self.game.player.rect.center) - pygame.Vector2(self.rect.center)).normalize()
+        Bullet(
+            (self.game.all_sprites, self.game.enemies_bullet_sprites),
+            self.rect.center,
+            self.bullet_surf,
+            direction,
+            self.damage,
+            lifetime=3000,
+            speed=460*self.speed_multiplier
+        )
+    
+    def triple_shot_attack(self):
+        self.game.play_sound('laser_shot')
+        direction = (pygame.Vector2(self.game.player.rect.center) - pygame.Vector2(self.rect.center)).normalize()
+        angles = [-15, 0, 15]
+        for a in angles:
+            rotated = direction.rotate(a)
+            Bullet(
+                (self.game.all_sprites, self.game.enemies_bullet_sprites),
+                self.rect.center,
+                self.bullet_surf,
+                rotated,
+                self.damage,
+                lifetime=5000,
+                speed=270*self.speed_multiplier
+            )
+    
+    def star_attack(self):
+        self.game.play_sound('laser_shot')
+        bullet_directions = [
+            (0, -1), (1, -1), (1, 0), (1, 1),
+            (0, 1), (-1, 1), (-1, 0), (-1, -1)
+        ]
+
+        for d in bullet_directions:
+            direction = pygame.Vector2(*d).normalize()
+            Bullet(
+                (self.game.all_sprites, self.game.enemies_bullet_sprites),
+                self.rect.center,
+                self.bullet_surf,
+                direction,
+                self.damage,
+                lifetime=10000,
+                speed=300*self.speed_multiplier
+            )
+
+    def draw_health(self, surface, *args):
+        bar_width = 500
+        bar_height = 30
+        x = (WINDOW_WIDTH - bar_width) // 2
+        y = 20
+        health_ratio = max(self.health / self.max_health, 0)
+        current_width = int(bar_width * health_ratio)
+        # background
+        pygame.draw.rect(surface, (60, 60, 60), (x, y, bar_width, bar_height), border_radius=8)
+        # health
+        pygame.draw.rect(surface, (220, 30, 30), (x, y, current_width, bar_height), border_radius=8)
+        # border
+        pygame.draw.rect(surface, (255, 255, 255), (x, y, bar_width, bar_height), 2, border_radius=8)
+        # name
+        font = self.game.xs_font
+        text = font.render("BOSS", True, (255, 255, 255))
+        text_rect = text.get_rect(center=(WINDOW_WIDTH // 2, y + bar_height // 2))
+        surface.blit(text, text_rect)
+
+
+    def update(self, dt):
+        super().update(dt)
+        self.attack_timer.update()
+        for timer in self.attack_timers_list:
+            timer.update()
 
         
+
 # ================== guns & bulet ====================
 
 
@@ -529,7 +674,7 @@ class Shotgun(Gun):
         self.all_sprites, self.bullet_sprites = groups
         super().__init__(self.all_sprites, player)
         
-        self.bullets_count = 5
+        self.bullets_count = 7
         
         self.cooldown_timer = Timer(self.cooldown)
 
@@ -547,7 +692,7 @@ class Shotgun(Gun):
                 random_offset = random.uniform(-spread_angle/2, spread_angle/2)
                 angle = base_angle + radians(random_offset)
                 direction = pygame.Vector2(cos(angle), sin(angle))
-                Bullet((self.all_sprites, self.bullet_sprites), self.rect.center+direction*10, self.bullet_surf, direction, self.damage, lifetime=300, speed=1000)
+                Bullet((self.all_sprites, self.bullet_sprites), self.rect.center+direction*10, self.bullet_surf, direction, self.damage, lifetime=380, speed=1000)
             self.cooldown_timer.activate()
     
 

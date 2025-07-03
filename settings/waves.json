@@ -45,10 +45,9 @@
     }
   },
   "5": {
+    "boss": true,
     "enemies": {
-      "normal": 9,
-      "fast": 7,
-      "heavy": 2
+      "first_boss": 1
     },
     "enemies_multiplier": {
       "speed": 1.2,
@@ -105,10 +104,9 @@
     }
   },
   "10": {
+    "boss": true,
     "enemies": {
-      "normal": 19,
-      "fast": 17,
-      "heavy": 4
+      "first_boss": 1
     },
     "enemies_multiplier": {
       "speed": 1.5,
@@ -165,10 +163,9 @@
     }
   },
   "15": {
+    "boss": true,
     "enemies": {
-      "normal": 29,
-      "fast": 27,
-      "heavy": 7
+      "first_boss": 1
     },
     "enemies_multiplier": {
       "speed": 1.75,
@@ -225,10 +222,9 @@
     }
   },
   "20": {
+    "boss": true,
     "enemies": {
-      "normal": 39,
-      "fast": 37,
-      "heavy": 9
+      "first_boss": 1
     },
     "enemies_multiplier": {
       "speed": 2.0,

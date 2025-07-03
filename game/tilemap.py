@@ -23,6 +23,11 @@ class Tilemap:
                 spawners.append((obj.x, obj.y))
         return spawners
             
+    def boss_spawner(self):
+        for obj in self.map.get_layer_by_name('Entities'):
+            if obj.name == 'Boss':
+                return (obj.x, obj.y)
+        
     def setup(self):
         for x, y, image in self.map.get_layer_by_name('Ground').tiles():
             tile = Sprite(self.all_sprites, (x*TILE_SIZE, y*TILE_SIZE), image)

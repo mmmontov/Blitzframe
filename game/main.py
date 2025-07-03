@@ -42,6 +42,7 @@ class Game:
         self.buttons_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
         self.bullet_sprites = pygame.sprite.Group()
+        self.enemies_bullet_sprites = pygame.sprite.Group()
         if hasattr(self, 'player'):
             delattr(self, 'player')
             
@@ -134,10 +135,17 @@ class Game:
         # ====== heavy ==============
         self.heavy_enemy_frames = folder_importer('images', 'enemies', 'heavy')
         
+        # ====== first_boss =========
+        first_boss_frames = folder_importer('images', 'enemies', 'first_boss')
+        self.first_boss_frames = {
+            name: scale_frame(surf, 1)
+            for name, surf in first_boss_frames.items()}
+        
         self.enemies_frames_dict = {
             'normal': self.normal_enemy_frames,
             'fast': self.fast_enemy_frames,
-            'heavy': self.heavy_enemy_frames
+            'heavy': self.heavy_enemy_frames,
+            'first_boss': self.first_boss_frames
         }
         
         # ===== buttons =====
