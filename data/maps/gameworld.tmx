@@ -2,8 +2,8 @@
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="57" height="48" tilewidth="64" tileheight="64" infinite="0" nextlayerid="6" nextobjectid="447">
  <tileset firstgid="1" source="../tilesets/world_tileset.tsx"/>
  <tileset firstgid="211" source="../tilesets/Objects.tsx"/>
- <tileset firstgid="225" source="../../../pygame/11_hours_video_tutorial/game_2/data/tilesets/world_tileset.tsx"/>
- <tileset firstgid="435" source="../../../pygame/11_hours_video_tutorial/game_2/data/tilesets/Objects.tsx"/>
+ <tileset firstgid="225" source="../../data/tilesets/world_tileset.tsx"/>
+ <tileset firstgid="435" source="../../data/tilesets/Objects.tsx"/>
  <layer id="1" name="Ground" width="57" height="48">
   <data encoding="csv">
 356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,356,
