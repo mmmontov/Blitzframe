@@ -6,6 +6,41 @@ import pygame
 import json
 import os
 
+class Intro:
+    def __init__(self, image_path, duration=2.0, scale_start=1, scale_end=1.2):
+        self.original_image = pygame.image.load(image_path).convert_alpha()
+        self.duration = duration
+        self.elapsed = 0.0
+        self.done = False
+        self.display_surface = pygame.display.get_surface()
+        self.center = self.display_surface.get_rect().center
+        self.scale_start = scale_start
+        self.scale_end = scale_end
+        self.current_image = self.original_image
+        self.image_rect = self.original_image.get_rect(center=self.center)
+
+    def update(self, dt):
+        if self.done:
+            return
+        self.elapsed += dt
+        if self.elapsed >= self.duration:
+            self.done = True
+
+        # Scale calculation
+        t = min(self.elapsed / self.duration, 1.0)
+        scale = self.scale_start + (self.scale_end - self.scale_start) * t
+        w = int(self.original_image.get_width() * scale)
+        h = int(self.original_image.get_height() * scale)
+        self.current_image = pygame.transform.smoothscale(self.original_image, (w, h))
+        self.image_rect = self.current_image.get_rect(center=self.center)
+
+    def draw(self):
+        if not self.done:
+            img = self.current_image.copy()
+            img.set_alpha(255)
+            self.display_surface.blit(img, self.image_rect)
+
+
 class Background:
     def __init__(self, image_path, scale, screen_size, speed=20):
         bg = pygame.image.load(image_path).convert()

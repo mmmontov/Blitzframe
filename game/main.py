@@ -19,6 +19,8 @@ class Game:
         self.running = True
         create_score_json()
         
+        self.intro = states.menu.Intro(join('images', 'intro.png'), duration=5.5)
+        
         self.reset_game()  # инициализация состояния игры
         
         # menu background
@@ -65,6 +67,7 @@ class Game:
             'shop': states.gameplay.Shop(self),
             'game_over': states.gameplay.GameOver(self)
         }
+        
         self.current_state = self.states['main_menu']
         self.current_state.on_enter() 
 
@@ -168,14 +171,18 @@ class Game:
                     self.running = False
                     
             # update
-            if not self.game_paused:
-                self.all_sprites.update(dt)
-            self.current_state.update(dt)
+            if self.intro.done:
+                if not self.game_paused:
+                    self.all_sprites.update(dt)
+                self.current_state.update(dt)
             self.sound.update(dt)
+            self.intro.update(dt)
             
             # draw
             self.display_surface.fill('black')
-            self.current_state.draw()
+            if self.intro.done:
+                self.current_state.draw()
+            self.intro.draw()
             
             pygame.display.update()
         pygame.quit()
